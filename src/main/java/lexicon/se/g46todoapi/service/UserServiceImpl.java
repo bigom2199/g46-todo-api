@@ -1,8 +1,10 @@
 package lexicon.se.g46todoapi.service;
 
 import lexicon.se.g46todoapi.domain.UserDTOForm;
+import lexicon.se.g46todoapi.dto.RoleDToView;
 import lexicon.se.g46todoapi.dto.UserDTOView;
 import lexicon.se.g46todoapi.entity.Role;
+import lexicon.se.g46todoapi.entity.User;
 import lexicon.se.g46todoapi.exception.DataDuplicateException;
 import lexicon.se.g46todoapi.exception.DataNotFoundException;
 import lexicon.se.g46todoapi.repository.RoleRepository;
@@ -11,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -39,17 +42,29 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTOView getByEmail(String email) {
-        // TODO: 2023-11-01 implement 
-        return null;
+        User user = userRepository.findById(email).orElseThrow(() -> new DataNotFoundException("Email does not exist."));
+        Set<RoleDToView> roleDToViews = user.getRoles()
+                .stream()
+                .map((role -> RoleDToView.builder()
+                        .id(role.getId())
+                        .name(role.getName())
+                        .build()
+                        .collect(collectors.toSet())
+                ));
+        return UserDTOView.builder().email(user.getEmail()).roles(roleDToViews).build();
     }
 
     @Override
     public void disableByEmail(String email) {
+        isEmailTaken(email);
+        userRepository.updateExpiredByEmail(email,true);
 
     }
 
     @Override
     public void enableByEmail(String email) {
+        isEmailTaken(email);
+        userRepository.updateExpiredByEmail(email,false);
 
     }
 }
