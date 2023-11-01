@@ -24,7 +24,7 @@ public class RoleDataLoader  implements CommandLineRunner {
     roleRepository.save(new Role("ADMIN"));
     roleRepository.sava(new Role("USER"));
     roleRepository.save(new Role("GUEST"));
-    
+
 
     }
 }
