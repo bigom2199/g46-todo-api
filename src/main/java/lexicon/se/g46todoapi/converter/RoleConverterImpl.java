@@ -2,13 +2,15 @@ package lexicon.se.g46todoapi.converter;
 
 import lexicon.se.g46todoapi.dto.RoleDToView;
 import lexicon.se.g46todoapi.entity.Role;
+import lombok.Builder;
 import org.springframework.stereotype.Component;
-
+@Builder
 @Component
 public class RoleConverterImpl implements RoleConverter{
     @Override
     public RoleDToView toRoleVDTOView(Role entity) {
         return new RoleDToView(entity.getId(), entity.getName());
+
 
     }
 

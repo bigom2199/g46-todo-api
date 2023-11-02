@@ -9,21 +9,28 @@ import lexicon.se.g46todoapi.exception.DataDuplicateException;
 import lexicon.se.g46todoapi.exception.DataNotFoundException;
 import lexicon.se.g46todoapi.repository.RoleRepository;
 import lexicon.se.g46todoapi.repository.UserRepository;
+import lexicon.se.g46todoapi.util.CustomPasswordEncoder;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+@Getter
+@Setter
 
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-
+private final CustomPasswordEncoder passwordEncoder;
     @Autowired
-    public UserServiceImpl(UserRepository userRepository,RoleRepository roleRepository){
+    public UserServiceImpl(UserRepository userRepository,RoleRepository roleRepository,CustomPasswordEncoder passwordEncoder){
         this.userRepository = userRepository ;
         this.roleRepository = roleRepository;
+        this.passwordEncoder=passwordEncoder;
     }
     @Override
     public UserDTOView register(UserDTOForm userDTOForm) {
@@ -35,7 +42,13 @@ public class UserServiceImpl implements UserService {
                 .stream()
                 .map(roleDToFrm -> roleRepository.findById(roleDToFrm.getId()))
                 .orElseThrow(() -> new DataNotFoundException("Role is not valid."))
-                .toList();
+                .collect(Collectors.toSet());
+      //Convert dto to entity
+        User user = new User(userDTOForm.getEmail(),passwordEncoder.encode(userDTOForm.getPassword()));
+        user.setRoles(roleList);
+        // create a new User entity
+        User savedUser = userRepository.save(user);
+
 
      return null;
     }
@@ -49,22 +62,26 @@ public class UserServiceImpl implements UserService {
                         .id(role.getId())
                         .name(role.getName())
                         .build()
-                        .collect(collectors.toSet())
+                        .collect(collector.toSet())
                 ));
         return UserDTOView.builder().email(user.getEmail()).roles(roleDToViews).build();
     }
 
     @Override
     public void disableByEmail(String email) {
-        isEmailTaken(email);
+        if(!userRepository.existsByEmail(email)) throw new DataNotFoundException("Email does not exist.");
         userRepository.updateExpiredByEmail(email,true);
 
     }
 
     @Override
     public void enableByEmail(String email) {
-        isEmailTaken(email);
+        if(!userRepository.existsByEmail(email)) throw new DataNotFoundException("Email does not  exist.");
         userRepository.updateExpiredByEmail(email,false);
 
     }
+  private void isEmailTaken(String email){
+        if (!userRepository.existsByEmail(email))
+            throw new DataNotFoundException("Email does not exist.");
+  }
 }
