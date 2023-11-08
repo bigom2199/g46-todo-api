@@ -29,7 +29,7 @@ private List<Task> tasks = new ArrayList<>();
         this.name = name;
     }
     public void addTask(Task... tasks){
-        if(Object.)
+        if(Object.task);
 
     }
     public void removeTask(Task... tasks){
