@@ -28,6 +28,6 @@ public class TaskController {
     }
     @GetMapping
     public ResponseEntity<List<TaskDTOview>> getAll(){
-    return ResponseEntity.ok().body(taskSERvice.getAll());
+    return ResponseEntity.ok().body(taskService.getAll());
     }
 }
